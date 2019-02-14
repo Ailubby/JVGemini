@@ -4,11 +4,10 @@ import com.my.jVGemini.thread.TaskConverVideo;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * @author zhe.sun
@@ -68,15 +67,17 @@ public class ConverVideoUtils {
         boolean result = true;
         File[] files = new File(sourceVideoPath).listFiles();
         ExecutorService exec = Executors.newFixedThreadPool(files.length);
+        CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(exec);
         for(File file : files) {
-            if(result) {
-                TaskConverVideo converVideotask = new TaskConverVideo(file,targetExtension,isDelSourseFile,sourceVideoPath);
-                Future future = exec.submit(converVideotask);
-                result = (Boolean)future.get();
-            }else {
-                exec.shutdown();
-                break;
+            TaskConverVideo converVideotask = new TaskConverVideo(file,targetExtension,isDelSourseFile,sourceVideoPath);
+            completionService.submit(converVideotask);
+        }
+        for(int i=0;i<files.length;i++){
+            boolean temp = completionService.take().get();
+            if (!temp) {
+                result = false;
             }
+            System.out.print(result + "\t");
         }
         return result;
     }
