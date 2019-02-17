@@ -1,7 +1,7 @@
 package com.my.test;
 
-import com.my.jVGemini.Contants;
-import com.my.jVGemini.ConverVideoUtils;
+import com.my.jvgemini.Contants;
+import com.my.jvgemini.ConverVideoUtils;
 
 /**
  * @author zhe.sun

@@ -1,10 +1,9 @@
-package com.my.jVGemini;
-import com.my.jVGemini.thread.TaskConverVideo;
+package com.my.jvgemini;
+import com.my.jvgemini.thread.TaskConverVideo;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
@@ -79,6 +78,7 @@ public class ConverVideoUtils {
             }
             System.out.print(result + "\t");
         }
+        exec.shutdown();
         return result;
     }
 

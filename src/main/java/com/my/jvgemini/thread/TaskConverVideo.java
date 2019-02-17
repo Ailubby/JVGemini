@@ -1,6 +1,6 @@
-package com.my.jVGemini.thread;
+package com.my.jvgemini.thread;
 
-import com.my.jVGemini.ConverVideoUtils;
+import com.my.jvgemini.ConverVideoUtils;
 
 import java.io.File;
 import java.util.concurrent.Callable;
