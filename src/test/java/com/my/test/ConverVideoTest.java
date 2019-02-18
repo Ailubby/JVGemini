@@ -2,12 +2,14 @@ package com.my.test;
 
 import com.my.jvgemini.Contants;
 import com.my.jvgemini.ConverVideoUtils;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author zhe.sun
  * @Description: TODO
  * @date 2019/2/6 9:38
  */
+@Slf4j
 public class ConverVideoTest {
     public void run() {
         try {
@@ -23,6 +25,7 @@ public class ConverVideoTest {
             if(beginConver) {
                 //批量转换成功
                 String dealTime = (end - start) + "";
+                log.info("——————————————————————————————————————————————批量处理时间:" + dealTime);
                 System.out.println("——————————————————————————————————————————————批量处理时间:" + dealTime);
             }
         } catch (Exception e) {
