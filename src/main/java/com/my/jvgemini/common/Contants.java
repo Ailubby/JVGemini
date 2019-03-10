@@ -1,4 +1,4 @@
-package com.my.jvgemini;
+package com.my.jvgemini.common;
 
 /**
  * @author zhe.sun

@@ -1,13 +1,20 @@
-package com.my.jvgemini;
+package com.my.jvgemini.util;
+
+import com.my.jvgemini.aspect.ExcuteTime;
+import com.my.jvgemini.common.Contants;
 import com.my.jvgemini.thread.TaskConverVideo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author zhe.sun
@@ -15,6 +22,7 @@ import java.util.concurrent.*;
  * @date 2019/2/6 9:25
  */
 @Slf4j
+@Component
 public class ConverVideoUtils {
     private Date dt;
     private long begintime;
@@ -28,6 +36,7 @@ public class ConverVideoUtils {
     private String imageRealPath = Contants.imageRealPath; // 截图的存放目录
 
     public ConverVideoUtils() {
+        sourceVideoPath = Contants.videofolder;
     }
 
     public ConverVideoUtils(String path) {
@@ -42,6 +51,10 @@ public class ConverVideoUtils {
         sourceVideoPath = path;
     }
 
+    @ExcuteTime
+    public void testAspect(){
+        log.info("11111");
+    }
 
     /**
      * @param targetExtension
@@ -65,6 +78,7 @@ public class ConverVideoUtils {
      * @param targetExtension
      * @param isDelSourseFile
      */
+    @ExcuteTime
     public boolean threadBatchConver(String targetExtension, boolean isDelSourseFile) throws Exception{
         boolean result = true;
         File[] files = new File(sourceVideoPath).listFiles();
@@ -138,32 +152,32 @@ public class ConverVideoUtils {
         File fi = new File(sourceVideoPath);
         filename = fi.getName();
         filerealname = filename.substring(0, filename.lastIndexOf(".")).toLowerCase();
-        List<String> commend = new java.util.ArrayList<String>();
+        List<String> command = new java.util.ArrayList<String>();
         //第一帧： 00:00:01
         //time ffmpeg -ss 00:00:01 -i test1.flv -f image2 -y test1.jpg
-        commend.add(ffmpegpath);
-//		commend.add("-i");
-//		commend.add(videoRealPath + filerealname + ".flv");
-//		commend.add("-y");
-//		commend.add("-f");
-//		commend.add("image2");
-//		commend.add("-ss");
-//		commend.add("38");
-//		commend.add("-t");
-//		commend.add("0.001");
-//		commend.add("-s");
-//		commend.add("320x240");
-        commend.add("-ss");
-        commend.add("00:00:01");
-        commend.add("-i");
-        commend.add(sourceVideoPath);
-        commend.add("-f");
-        commend.add("image2");
-        commend.add("-y");
-        commend.add(imageRealPath + filerealname + ".jpg");
+        command.add(ffmpegpath);
+//		command.add("-i");
+//		command.add(videoRealPath + filerealname + ".flv");
+//		command.add("-y");
+//		command.add("-f");
+//		command.add("image2");
+//		command.add("-ss");
+//		command.add("38");
+//		command.add("-t");
+//		command.add("0.001");
+//		command.add("-s");
+//		command.add("320x240");
+        command.add("-ss");
+        command.add("00:00:01");
+        command.add("-i");
+        command.add(sourceVideoPath);
+        command.add("-f");
+        command.add("image2");
+        command.add("-y");
+        command.add(imageRealPath + filerealname + ".jpg");
         try {
             ProcessBuilder builder = new ProcessBuilder();
-            builder.command(commend);
+            builder.command(command);
             builder.start();
             return true;
         } catch (Exception e) {
@@ -257,26 +271,26 @@ public class ConverVideoUtils {
      * @return
      */
     private String processAVI(int type) {
-        List<String> commend = new java.util.ArrayList<String>();
-        commend.add(mencoderpath);
-        commend.add(sourceVideoPath);
-        commend.add("-oac");
-        commend.add("mp3lame");
-        commend.add("-lameopts");
-        commend.add("preset=64");
-        commend.add("-ovc");
-        commend.add("xvid");
-        commend.add("-xvidencopts");
-        commend.add("bitrate=600");
-        commend.add("-of");
-        commend.add("avi");
-        commend.add("-o");
-        commend.add(videofolder + filerealname + ".avi");
+        List<String> command = new java.util.ArrayList<String>();
+        command.add(mencoderpath);
+        command.add(sourceVideoPath);
+        command.add("-oac");
+        command.add("mp3lame");
+        command.add("-lameopts");
+        command.add("preset=64");
+        command.add("-ovc");
+        command.add("xvid");
+        command.add("-xvidencopts");
+        command.add("bitrate=600");
+        command.add("-of");
+        command.add("avi");
+        command.add("-o");
+        command.add(videofolder + filerealname + ".avi");
         // 命令类型：mencoder 1.rmvb -oac mp3lame -lameopts preset=64 -ovc xvid
         // -xvidencopts bitrate=600 -of avi -o rmvb.avi
         try {
             ProcessBuilder builder = new ProcessBuilder();
-            builder.command(commend);
+            builder.command(command);
             Process p = builder.start();
             doWaitFor(p);
             return videofolder + filerealname + ".avi";
@@ -300,17 +314,17 @@ public class ConverVideoUtils {
             return false;
         }
         //ffmpeg -i FILE_NAME.flv -ar 22050 NEW_FILE_NAME.mp4
-        List<String> commend = new java.util.ArrayList<String>();
-        commend.add(ffmpegpath);
-        commend.add("-i");
-        commend.add(oldfilepath);
-        commend.add("-ar");
-        commend.add("22050");
-        commend.add(targetfolder + filerealname + targetExtension);
+        List<String> command = new java.util.ArrayList<String>();
+        command.add(ffmpegpath);
+        command.add("-i");
+        command.add(oldfilepath);
+        command.add("-ar");
+        command.add("22050");
+        command.add(targetfolder + filerealname + targetExtension);
         try {
             ProcessBuilder builder = new ProcessBuilder();
-            String cmd = commend.toString();
-            builder.command(commend);
+            String cmd = command.toString();
+            builder.command(command);
             Process p = builder.start();
             doWaitFor(p);
             p.destroy();
@@ -335,28 +349,28 @@ public class ConverVideoUtils {
             log.info(oldfilepath + " is not file");
             return false;
         }
-        List<String> commend = new java.util.ArrayList<String>();
-        commend.add(ffmpegpath);
-        commend.add("-i");
-        commend.add(oldfilepath);
-        commend.add("-ab");
-        commend.add("64");
-        commend.add("-acodec");
-        commend.add("mp3");
-        commend.add("-ac");
-        commend.add("2");
-        commend.add("-ar");
-        commend.add("22050");
-        commend.add("-b");
-        commend.add("230");
-        commend.add("-r");
-        commend.add("24");
-        commend.add("-y");
-        commend.add(targetfolder + filerealname + ".flv");
+        List<String> command = new java.util.ArrayList<String>();
+        command.add(ffmpegpath);
+        command.add("-i");
+        command.add(oldfilepath);
+        command.add("-ab");
+        command.add("64");
+        command.add("-acodec");
+        command.add("mp3");
+        command.add("-ac");
+        command.add("2");
+        command.add("-ar");
+        command.add("22050");
+        command.add("-b");
+        command.add("230");
+        command.add("-r");
+        command.add("24");
+        command.add("-y");
+        command.add(targetfolder + filerealname + ".flv");
         try {
             ProcessBuilder builder = new ProcessBuilder();
-            String cmd = commend.toString();
-            builder.command(commend);
+            String cmd = command.toString();
+            builder.command(command);
             Process p = builder.start();
             doWaitFor(p);
             p.destroy();
@@ -397,7 +411,7 @@ public class ConverVideoUtils {
                 }
             }
         } catch (Exception e) {
-            System.err.println("doWaitFor();: unexpected exception - " + e.getMessage());
+            log.warn("doWaitFor();: unexpected exception - " + e.getMessage());
         } finally {
             try {
                 if (in != null) {
@@ -428,3 +442,4 @@ public class ConverVideoUtils {
         return totalTime + "";
     }
 }
+
