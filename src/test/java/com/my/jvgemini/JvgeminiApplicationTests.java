@@ -8,6 +8,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
+import java.io.File;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @WebAppConfiguration
@@ -18,7 +20,7 @@ public class JvgeminiApplicationTests {
 
 	@Test
 	public void contextLoads() throws Exception{
-		converVideoUtils.testAspect();
+		converVideoUtils.beginCut(new File("\"E:\\\\workspaces\\\\JVGemini\\\\src\\\\main\\\\resources\\\\input\\\\四级阅读强化课程——正确答案特征.avi\""), "00:00:01", "00:00:30");
 	}
 
 }

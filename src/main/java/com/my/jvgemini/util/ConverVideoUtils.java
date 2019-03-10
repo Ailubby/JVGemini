@@ -18,14 +18,12 @@ import java.util.concurrent.Executors;
 
 /**
  * @author zhe.sun
- * @Description: 视频格式转换工具
+ * @Description: 视频加工工具
  * @date 2019/2/6 9:25
  */
 @Slf4j
 @Component
 public class ConverVideoUtils {
-    private Date dt;
-    private long begintime;
     private String sourceVideoPath;//源视频路径
     private String filerealname; // 文件名 不包括扩展名
     private String filename; // 包括扩展名
@@ -49,11 +47,6 @@ public class ConverVideoUtils {
 
     public void setPATH(String path) {
         sourceVideoPath = path;
-    }
-
-    @ExcuteTime
-    public void testAspect(){
-        log.info("11111");
     }
 
     /**
@@ -82,7 +75,7 @@ public class ConverVideoUtils {
     public boolean threadBatchConver(String targetExtension, boolean isDelSourseFile) throws Exception{
         boolean result = true;
         File[] files = new File(sourceVideoPath).listFiles();
-        ExecutorService exec = Executors.newFixedThreadPool(files.length);
+        ExecutorService exec = Executors.newFixedThreadPool(4);
         CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(exec);
         for(File file : files) {
             TaskConverVideo converVideotask = new TaskConverVideo(file,targetExtension,isDelSourseFile,sourceVideoPath);
@@ -99,6 +92,31 @@ public class ConverVideoUtils {
         return result;
     }
 
+    @ExcuteTime
+    public boolean beginCut(File file, String beginTime, String persistentTime) throws Exception{
+        List<String> command = new java.util.ArrayList<String>();
+        //ffmpeg -ss 00:01:00 -i video.mp4 -to 00:02:00 -c copy cut.mp4
+        command.add(ffmpegpath);
+        command.add("-ss");
+        command.add(beginTime);
+        command.add("-i");
+        command.add(file.getPath());
+        command.add("-to");
+        command.add(persistentTime);
+        command.add("-c");
+        command.add("copy");
+        command.add(targetfolder + "succsess.avi");
+        command.add("-y");
+        ProcessBuilder builder = new ProcessBuilder();
+        String cmd = command.toString();
+        log.info(cmd);
+        builder.command(command);
+        Process p = builder.start();
+        doWaitFor(p);
+        p.destroy();
+        return true;
+    }
+
     /**
      * 转换视频格式
      * @param targetExtension 目标视频扩展名 .xxx
@@ -113,16 +131,10 @@ public class ConverVideoUtils {
             log.info(sourceVideoPath + filename + "文件不存在" + " ");
             return false;
         }
-        dt = new Date();
-        begintime = dt.getTime();
         log.info("----开始转文件(" + sourceVideoPath + filename + ")-------------------------- ");
         if (process(targetExtension,isDelSourseFile,sourceVideoPath + filename)) {
             Date dt2 = new Date();
             log.info("转换成功 ");
-            long endtime = dt2.getTime();
-            long timecha = (endtime - begintime);
-            String totaltime = sumTime(timecha);
-            log.info("转换视频格式共用了:" + totaltime + " ");
             if (processImg(sourceVideoPath + filename)) {
                 log.info("截图成功了！ ");
             } else {
@@ -436,10 +448,6 @@ public class ConverVideoUtils {
         File file=new File(filePath);
         if(file.exists()&&file.isFile())
             file.delete();
-    }
-
-    public String sumTime(Long totalTime) {
-        return totalTime + "";
     }
 }
 
