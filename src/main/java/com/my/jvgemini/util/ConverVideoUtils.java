@@ -108,8 +108,6 @@ public class ConverVideoUtils {
         command.add(targetfolder + "succsess.avi");
         command.add("-y");
         ProcessBuilder builder = new ProcessBuilder();
-        String cmd = command.toString();
-        log.info(cmd);
         builder.command(command);
         Process p = builder.start();
         doWaitFor(p);
