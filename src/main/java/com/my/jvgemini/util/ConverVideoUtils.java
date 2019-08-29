@@ -6,15 +6,14 @@ import com.my.jvgemini.thread.TaskConverVideo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * @author zhe.sun
@@ -32,6 +31,13 @@ public class ConverVideoUtils {
     private String ffmpegpath = Contants.ffmpegpath; // ffmpeg.exe的目录
     private String mencoderpath = Contants.mencoderpath; // mencoder的目录
     private String imageRealPath = Contants.imageRealPath; // 截图的存放目录
+
+    private static ExecutorService exec = Executors.newFixedThreadPool(4);
+
+    @PreDestroy
+    public void shotDown() {
+        exec.shutdown();
+    }
 
     public ConverVideoUtils() {
         sourceVideoPath = Contants.videofolder;
@@ -56,10 +62,10 @@ public class ConverVideoUtils {
     public boolean batchConver(String targetExtension, boolean isDelSourseFile) {
         boolean result = true;
         File[] files = new File(sourceVideoPath).listFiles();
-        for(File file : files) {
-            if(result) {
+        for (File file : files) {
+            if (result) {
                 result = beginConver(targetExtension, isDelSourseFile, file);
-            }else{
+            } else {
                 break;
             }
         }
@@ -68,32 +74,31 @@ public class ConverVideoUtils {
 
     /**
      * TODO 优化多线程
+     *
      * @param targetExtension
      * @param isDelSourseFile
      */
     @ExcuteTime
-    public boolean threadBatchConver(String targetExtension, boolean isDelSourseFile) throws Exception{
+    public boolean threadBatchConver(String targetExtension, boolean isDelSourseFile) throws Exception {
         boolean result = true;
         File[] files = new File(sourceVideoPath).listFiles();
-        ExecutorService exec = Executors.newFixedThreadPool(4);
         CompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(exec);
-        for(File file : files) {
-            TaskConverVideo converVideotask = new TaskConverVideo(file,targetExtension,isDelSourseFile,sourceVideoPath);
+        for (File file : files) {
+            TaskConverVideo converVideotask = new TaskConverVideo(file, targetExtension, isDelSourseFile, sourceVideoPath);
             completionService.submit(converVideotask);
         }
-        for(int i=0;i<files.length;i++){
+        for (int i = 0; i < files.length; i++) {
             boolean temp = completionService.take().get();
             if (!temp) {
                 result = false;
             }
             log.info(result + "\t");
         }
-        exec.shutdown();
         return result;
     }
 
     @ExcuteTime
-    public boolean beginCut(File file, String beginTime, String persistentTime) throws Exception{
+    public boolean beginCut(File file, String beginTime, String persistentTime) throws Exception {
         List<String> command = new java.util.ArrayList<String>();
         //ffmpeg -ss 00:01:00 -i video.mp4 -to 00:02:00 -c copy cut.mp4
         command.add(ffmpegpath);
@@ -117,6 +122,7 @@ public class ConverVideoUtils {
 
     /**
      * 转换视频格式
+     *
      * @param targetExtension 目标视频扩展名 .xxx
      * @param isDelSourseFile 转换完成后是否删除源文件
      * @return
@@ -124,13 +130,13 @@ public class ConverVideoUtils {
     public boolean beginConver(String targetExtension, boolean isDelSourseFile, File file) {
         filename = file.getName();
         filerealname = filename.substring(0, filename.lastIndexOf(".")).toLowerCase();
-        log.info("----接收到文件(" + sourceVideoPath + filename +  ")需要转换-------------------------- ");
+        log.info("----接收到文件(" + sourceVideoPath + filename + ")需要转换-------------------------- ");
         if (!checkfile(sourceVideoPath + filename)) {
             log.info(sourceVideoPath + filename + "文件不存在" + " ");
             return false;
         }
         log.info("----开始转文件(" + sourceVideoPath + filename + ")-------------------------- ");
-        if (process(targetExtension,isDelSourseFile,sourceVideoPath + filename)) {
+        if (process(targetExtension, isDelSourseFile, sourceVideoPath + filename)) {
             Date dt2 = new Date();
             log.info("转换成功 ");
             if (processImg(sourceVideoPath + filename)) {
@@ -151,6 +157,7 @@ public class ConverVideoUtils {
 
     /**
      * 对视频进行截图
+     *
      * @param sourceVideoPath 需要被截图的视频路径（包含文件名和扩展名）
      * @return
      */
@@ -198,6 +205,7 @@ public class ConverVideoUtils {
 
     /**
      * 实际转换视频格式的方法
+     *
      * @param targetExtension 目标视频扩展名
      * @param isDelSourseFile 转换完成后是否删除源文件
      * @param sourceVideoPath 源文件url
@@ -208,16 +216,16 @@ public class ConverVideoUtils {
         boolean status = false;
         if (type == 0) {
             //如果type为0用ffmpeg直接转换
-            status = processVideoFormat(sourceVideoPath,targetExtension, isDelSourseFile);
+            status = processVideoFormat(sourceVideoPath, targetExtension, isDelSourseFile);
         } else if (type == 1) {
             //如果type为1，将其他文件先转换为avi，然后在用ffmpeg转换为指定格式
             String avifilepath = processAVI(type);
-            if (avifilepath == null){
+            if (avifilepath == null) {
                 // avi文件没有得到
                 return false;
-            }else {
+            } else {
                 log.info("开始转换:");
-                status = processVideoFormat(avifilepath,targetExtension, isDelSourseFile);
+                status = processVideoFormat(avifilepath, targetExtension, isDelSourseFile);
             }
         }
         return status;
@@ -225,6 +233,7 @@ public class ConverVideoUtils {
 
     /**
      * 检查文件类型
+     *
      * @return
      */
     private int checkContentType(String sourceVideoPath) {
@@ -263,6 +272,7 @@ public class ConverVideoUtils {
 
     /**
      * 检查文件是否存在
+     *
      * @param path
      * @return
      */
@@ -276,7 +286,8 @@ public class ConverVideoUtils {
     }
 
     /**
-     *  对ffmpeg无法解析的文件格式(wmv9，rm，rmvb等), 可以先用别的工具（mencoder）转换为avi(ffmpeg能解析的)格式.
+     * 对ffmpeg无法解析的文件格式(wmv9，rm，rmvb等), 可以先用别的工具（mencoder）转换为avi(ffmpeg能解析的)格式.
+     *
      * @param type
      * @return
      */
@@ -313,6 +324,7 @@ public class ConverVideoUtils {
     /**
      * 转换为指定格式
      * ffmpeg能解析的格式：（asx，asf，mpg，wmv，3gp，mp4，mov，avi，flv等）
+     *
      * @param oldfilepath
      * @param targetExtension 目标格式扩展名 .xxx
      * @param isDelSourceFile 转换完成后是否删除源文件
@@ -351,6 +363,7 @@ public class ConverVideoUtils {
 
     /**
      * ffmpeg能解析的格式：（asx，asf，mpg，wmv，3gp，mp4，mov，avi，flv等）
+     *
      * @param oldfilepath
      * @return
      */
@@ -443,9 +456,8 @@ public class ConverVideoUtils {
     }
 
     public void deleteFile(String filePath) {
-        File file=new File(filePath);
-        if(file.exists()&&file.isFile())
+        File file = new File(filePath);
+        if (file.exists() && file.isFile())
             file.delete();
     }
 }
-
