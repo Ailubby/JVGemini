@@ -10,7 +10,6 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
@@ -34,9 +33,23 @@ public class ConverVideoUtils {
 
     private static ExecutorService exec = Executors.newFixedThreadPool(4);
 
+    /**
+     * 关闭线程池缓冲时间
+     */
+    private static int SHOT_DOWN_TIME_OUT = 60;
+
     @PreDestroy
     public void shotDown() {
+        log.info("销毁线程池");
         exec.shutdown();
+        try {
+            if(!exec.awaitTermination(SHOT_DOWN_TIME_OUT, TimeUnit.SECONDS)) {
+                exec.shutdownNow();
+            }
+        }catch (InterruptedException e) {
+            exec.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     public ConverVideoUtils() {
