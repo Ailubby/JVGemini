@@ -15,7 +15,7 @@
 	<description>convert video</description>
 
 	<properties>
-		<logback.version>1.1.7</logback.version>
+		<logback.version>1.2.0</logback.version>
 		<slf4j.version>1.7.16</slf4j.version>
 		<aspectj.version>1.8.9</aspectj.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
